@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { basename, dirname, join } from "node:path";
+import { autoStartEverywhere } from "../config.js";
 
 const LOCAL_DIR = ".pi/remote-pi";
 const LOCAL_FILE = "config.json";
@@ -112,7 +113,9 @@ function directConfig(): LocalConfig | null {
  * `REMOTE_PI_DIRECT_CONFIG` or as `<cwd>/.pi/remote-pi/config.json` on disk.
  */
 export function localConfigExists(cwd: string): boolean {
-  return directConfig() !== null || existsSync(pathFor(cwd));
+  // Fork: with `auto_start_everywhere`, a folder without config.json uses the
+  // defaults (folder name, relay on) and no file is written into the folder.
+  return directConfig() !== null || existsSync(pathFor(cwd)) || autoStartEverywhere();
 }
 
 export function loadLocalConfig(cwd: string): LocalConfig {

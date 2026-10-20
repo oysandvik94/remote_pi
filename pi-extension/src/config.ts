@@ -13,7 +13,16 @@ const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
  */
 export const kDefaultRelayUrl = "http://127.0.0.1:3000";
 
-export type RemotePiConfig = { relay?: string };
+export type RemotePiConfig = {
+  relay?: string;
+  /** Fork: treat every folder as configured (default agent name, relay on). */
+  auto_start_everywhere?: boolean;
+};
+
+/** Fork: true when `~/.pi/remote/config.json` sets `auto_start_everywhere`. */
+export function autoStartEverywhere(): boolean {
+  return loadConfig().auto_start_everywhere === true;
+}
 
 export function loadConfig(): RemotePiConfig {
   try {

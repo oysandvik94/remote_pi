@@ -2391,7 +2391,9 @@ const extension: ExtensionFactory = (pi: ExtensionAPI): void => {
       // mode (REMOTE_PI_DAEMON=1) and normal interactive sessions never pass
       // `-p`/`--print`, so they still auto-start the relay exactly as before.
       const isPrintMode =
-        process.argv.includes("-p") || process.argv.includes("--print");
+        process.argv.includes("-p") || process.argv.includes("--print") ||
+        // Fork: embedded SDK sessions (e.g. subagents) report mode "print".
+        ("mode" in ctx && ctx.mode === "print");
       const cwd = isDaemon ? process.cwd() : "cwd" in ctx ? ctx.cwd : undefined;
       if (
         !isPrintMode &&
