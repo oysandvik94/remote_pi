@@ -245,7 +245,7 @@ describe("MeshNode retained topology", () => {
     node.setTopology(retained);
     await node.attachBridge({
       relay: injectedRelay() as never,
-      relayUrl: "https://relay.test",
+      relayUrl: "https://100.64.0.1",
       keypair: KEYPAIR,
     });
     expect(attachSpy).not.toHaveBeenCalled();
@@ -271,7 +271,7 @@ describe("MeshNode retained topology", () => {
     expect(node.hasTopology()).toBe(true);
     await node.attachBridge({
       relay: injectedRelay() as never,
-      relayUrl: "https://relay.test",
+      relayUrl: "https://100.64.0.1",
       keypair: KEYPAIR,
     });
 
@@ -290,7 +290,7 @@ describe("MeshNode retained topology", () => {
     node.setTopology(first);
     await node.attachBridge({
       relay: injectedRelay() as never,
-      relayUrl: "https://relay.test",
+      relayUrl: "https://100.64.0.1",
       keypair: KEYPAIR,
     });
     node.setTopology(updated);
@@ -307,7 +307,7 @@ describe("MeshNode retained topology", () => {
     node.setTopology(first.topology);
     await node.attachBridge({
       relay: injectedRelay() as never,
-      relayUrl: "https://relay.test",
+      relayUrl: "https://100.64.0.1",
       keypair: KEYPAIR,
     });
     node.setTopology(second.topology);
@@ -344,7 +344,7 @@ describe("cross-PC bridge discovery boundary", () => {
     const result = await bridgeModule.attachCrossPcBridge({
       broker: broker as never,
       relay: injectedRelay() as never,
-      relayUrl: "https://relay.test",
+      relayUrl: "https://100.64.0.1",
       keypair: KEYPAIR,
       topology: supplied,
     });
@@ -377,7 +377,7 @@ describe("cross-PC bridge discovery boundary", () => {
       const attaching = bridgeModule.attachCrossPcBridge({
         broker: broker as never,
         relay: injectedRelay() as never,
-        relayUrl: "https://relay.test",
+        relayUrl: "https://100.64.0.1",
         keypair: KEYPAIR,
         meshRequestTimeoutMs: 25,
       });

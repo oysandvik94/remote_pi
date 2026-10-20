@@ -1,4 +1,5 @@
 import type { MeshEnvelope } from "./types.js";
+import { assertPrivateRelayUrl } from "../transport/relay_guard.js";
 
 export class MeshFetchUnavailableError extends Error {
   override readonly name = "MeshFetchUnavailableError";
@@ -91,6 +92,11 @@ export class MeshClient {
     const query =
       since !== undefined ? `?since=${encodeURIComponent(since)}` : "";
     const url = `${this.baseUrl}/mesh/${encodeURIComponent(hash)}${query}`;
+    try {
+      await assertPrivateRelayUrl(url);
+    } catch {
+      throw unavailable();
+    }
     const controller = new AbortController();
     let rejectOnAbort: (() => void) | null = null;
     const aborted = new Promise<never>((_resolve, reject) => {
@@ -106,7 +112,7 @@ export class MeshClient {
       let response: Response;
       try {
         response = await Promise.race([
-          fetch(url, { method: "GET", signal: controller.signal }),
+          fetch(url, { method: "GET", redirect: "error", signal: controller.signal }),
           aborted,
         ]);
       } catch (error) {

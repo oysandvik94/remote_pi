@@ -9,14 +9,23 @@ import {
 
 describe("isValidRelayUrl (strict http(s):// only)", () => {
   test("accepts http://", () => {
-    expect(isValidRelayUrl("http://foo.test")).toBe(true);
-    expect(isValidRelayUrl("http://foo.test:3000")).toBe(true);
-    expect(isValidRelayUrl("http://192.168.1.10:3000")).toBe(true);
+    expect(isValidRelayUrl("http://localhost:3000")).toBe(true);
+    expect(isValidRelayUrl("http://127.0.0.1:3000")).toBe(true);
+    expect(isValidRelayUrl("http://100.64.1.10:3000")).toBe(true);
   });
 
   test("accepts https://", () => {
-    expect(isValidRelayUrl("https://relay.example.tld")).toBe(true);
-    expect(isValidRelayUrl("https://relay-rp1.jacobmoura.work")).toBe(true);
+    expect(isValidRelayUrl("https://box.tail1234.ts.net")).toBe(true);
+    expect(isValidRelayUrl("https://[fd7a:115c:a1e0::1]")).toBe(true);
+  });
+
+  test("rejects relays outside loopback / tailnet (fork egress guard)", () => {
+    expect(isValidRelayUrl("https://relay-rp1.jacobmoura.work")).toBe(false);
+    expect(isValidRelayUrl("https://relay.example.tld")).toBe(false);
+    expect(isValidRelayUrl("http://192.168.1.10:3000")).toBe(false);
+    expect(isValidRelayUrl("http://8.8.8.8")).toBe(false);
+    expect(isValidRelayUrl("http://100.128.0.1")).toBe(false);
+    expect(isValidRelayUrl("http://box.ts.net.evil.com")).toBe(false);
   });
 
   test("rejects ws:// (user must use http:// + auto-convert)", () => {
@@ -89,8 +98,7 @@ describe("toHttpUrl (ws(s):// → http(s)://)", () => {
 });
 
 describe("kDefaultRelayUrl", () => {
-  test("is canonical https:// form (no scheme conversion needed at resolve time)", () => {
-    expect(kDefaultRelayUrl).toMatch(/^https:\/\//);
-    expect(kDefaultRelayUrl).toBe("https://relay-rp1.jacobmoura.work");
+  test("defaults to the local self-hosted relay", () => {
+    expect(kDefaultRelayUrl).toBe("http://127.0.0.1:3000");
   });
 });

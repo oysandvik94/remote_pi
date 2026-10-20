@@ -3359,7 +3359,7 @@ function _cmdSetRelay(arg: string, ctx: Pick<ExtensionContext, "ui">): void {
   }
   if (!isValidRelayUrl(raw)) {
     ctx.ui.notify(
-      `[remote-pi] Invalid URL: ${raw}. Must start with http:// or https://`,
+      `[remote-pi] Invalid URL: ${raw}. Must be http(s):// on localhost or the Tailscale tailnet (*.ts.net / 100.64.0.0/10)`,
       "error",
     );
     return;
@@ -5160,7 +5160,7 @@ if (_isDirectRun()) {
     } else if (isWebSocketScheme(raw)) {
       console.log(`Use http:// or https://. The extension converts to WebSocket automatically.`);
     } else if (!isValidRelayUrl(raw)) {
-      console.log(`Invalid URL: ${raw}. Must start with http:// or https://`);
+      console.log(`Invalid URL: ${raw}. Must be http(s):// on localhost or the Tailscale tailnet (*.ts.net / 100.64.0.0/10)`);
     } else {
       saveConfig({ relay: raw });
       console.log(`Relay set to ${raw}`);

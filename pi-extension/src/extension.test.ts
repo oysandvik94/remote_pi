@@ -2732,11 +2732,11 @@ describe("/remote-pi set-relay + config", () => {
   test("set-relay stores http:// as-is (canonical scheme)", async () => {
     const setRelay = captureHandler("remote-pi set-relay");
     const ctx = makeMockCtx();
-    await setRelay("http://foo:3000", ctx);
+    await setRelay("http://100.64.1.30:3000", ctx);
 
-    expect(_setRelayCalls).toEqual(["http://foo:3000"]);
+    expect(_setRelayCalls).toEqual(["http://100.64.1.30:3000"]);
     expect(ctx.ui.notify).toHaveBeenCalledWith(
-      expect.stringContaining("http://foo:3000"),
+      expect.stringContaining("http://100.64.1.30:3000"),
       "info",
     );
   });
@@ -2744,11 +2744,11 @@ describe("/remote-pi set-relay + config", () => {
   test("set-relay stores https:// as-is (canonical scheme)", async () => {
     const setRelay = captureHandler("remote-pi set-relay");
     const ctx = makeMockCtx();
-    await setRelay("https://relay.example.tld", ctx);
+    await setRelay("https://100.64.1.40", ctx);
 
-    expect(_setRelayCalls).toEqual(["https://relay.example.tld"]);
+    expect(_setRelayCalls).toEqual(["https://100.64.1.40"]);
     expect(ctx.ui.notify).toHaveBeenCalledWith(
-      expect.stringContaining("https://relay.example.tld"),
+      expect.stringContaining("https://100.64.1.40"),
       "info",
     );
   });
@@ -2792,11 +2792,11 @@ describe("/remote-pi set-relay + config", () => {
   test("set-relay persists http:// URL via saveConfig (canonical form)", async () => {
     const setRelay = captureHandler("remote-pi set-relay");
     const ctx = makeMockCtx();
-    await setRelay("http://192.168.1.10:3000", ctx);
+    await setRelay("http://100.64.1.10:3000", ctx);
 
-    expect(_setRelayCalls).toEqual(["http://192.168.1.10:3000"]);
+    expect(_setRelayCalls).toEqual(["http://100.64.1.10:3000"]);
     expect(ctx.ui.notify).toHaveBeenCalledWith(
-      expect.stringContaining("Relay set to http://192.168.1.10:3000"),
+      expect.stringContaining("Relay set to http://100.64.1.10:3000"),
       "info",
     );
   });
@@ -2807,11 +2807,11 @@ describe("/remote-pi set-relay + config", () => {
   test("relay url persists the URL through the same writer as set-relay", async () => {
     const relay = captureHandler("remote-pi relay");
     const ctx = makeMockCtx();
-    await relay("url http://192.168.1.20:3000", ctx);
+    await relay("url http://100.64.1.20:3000", ctx);
 
-    expect(_setRelayCalls).toEqual(["http://192.168.1.20:3000"]);
+    expect(_setRelayCalls).toEqual(["http://100.64.1.20:3000"]);
     expect(ctx.ui.notify).toHaveBeenCalledWith(
-      expect.stringContaining("Relay set to http://192.168.1.20:3000"),
+      expect.stringContaining("Relay set to http://100.64.1.20:3000"),
       "info",
     );
   });
@@ -2870,14 +2870,14 @@ describe("/remote-pi set-relay + config", () => {
 
   test("/remote-pi status shows the saved URL after set-relay", async () => {
     const setRelay = captureHandler("remote-pi set-relay");
-    await setRelay("http://10.0.0.5:4000", makeMockCtx());
+    await setRelay("http://100.64.0.5:4000", makeMockCtx());
 
     const status = captureHandler("remote-pi status");
     const ctx = makeMockCtx();
     await status("", ctx);
 
     const text = (ctx.ui.notify.mock.calls[0]![0]) as string;
-    expect(text).toContain("http://10.0.0.5:4000");
+    expect(text).toContain("http://100.64.0.5:4000");
   });
 
   test("/remote-pi status shows the default URL when nothing set", async () => {
@@ -2886,7 +2886,7 @@ describe("/remote-pi set-relay + config", () => {
     await status("", ctx);
 
     const text = (ctx.ui.notify.mock.calls[0]![0]) as string;
-    expect(text).toContain("https://relay-rp1.jacobmoura.work");
+    expect(text).toContain("http://127.0.0.1:3000");
   });
 
   test("/remote-pi status reflects env override (canonicalized to https://)", async () => {
@@ -2903,7 +2903,7 @@ describe("/remote-pi set-relay + config", () => {
 
   test("saved URL is used by _cmdStart on next connect (http:// stored as-is)", async () => {
     const setRelay = captureHandler("remote-pi set-relay");
-    await setRelay("http://10.0.0.5:4000", makeMockCtx());
+    await setRelay("http://100.64.0.5:4000", makeMockCtx());
 
     captureHandler("remote-pi");
     const ctx = makeMockCtx();
@@ -2913,7 +2913,7 @@ describe("/remote-pi set-relay + config", () => {
     // The "Connecting to relay <url>" notify shows the canonical http(s)://
     // form. Transport converts to ws(s):// internally before opening WS.
     expect(ctx.ui.notify).toHaveBeenCalledWith(
-      expect.stringContaining("http://10.0.0.5:4000"),
+      expect.stringContaining("http://100.64.0.5:4000"),
       "info",
     );
     expect(ctx.ui.notify).toHaveBeenCalledWith(

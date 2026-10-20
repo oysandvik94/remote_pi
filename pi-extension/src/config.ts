@@ -1,18 +1,17 @@
 import fs from "node:fs";
 import path from "node:path";
 import os from "node:os";
+import { isAllowedRelayHost } from "./transport/relay_guard.js";
 
 const CONFIG_DIR = path.join(os.homedir(), ".pi", "remote");
 const CONFIG_FILE = path.join(CONFIG_DIR, "config.json");
 
 /**
- * Default community relay. Stored in canonical http(s):// form — conversion
- * to ws(s):// happens at the transport layer (see `toWebSocketUrl`). The
- * community relay's reverse proxy maps `:443 → :3000` (the WS port), so the
- * URL has no explicit port and the WebSocket upgrade rides on the same TLS
- * connection as the HTTPS endpoints used by the mesh client.
+ * Fork default: a self-hosted relay on this machine. The upstream community
+ * relay default was removed, and `relay_guard.ts` refuses any relay that is
+ * not on loopback or the Tailscale tailnet.
  */
-export const kDefaultRelayUrl = "https://relay-rp1.jacobmoura.work";
+export const kDefaultRelayUrl = "http://127.0.0.1:3000";
 
 export type RemotePiConfig = { relay?: string };
 
@@ -42,7 +41,7 @@ export type RelayResolution = { url: string; source: "env" | "config" | "default
  * Precedence:
  *   1. `REMOTE_PI_RELAY` env var (ops/CI escape hatch)
  *   2. `~/.pi/remote/config.json` `relay` field (set via /remote-pi set-relay)
- *   3. `kDefaultRelayUrl` (community default)
+ *   3. `kDefaultRelayUrl` (local relay on 127.0.0.1:3000)
  *
  * Any ws(s):// values found (legacy configs or env overrides) are coerced
  * to http(s):// defensively — the canonical form across the codebase is
@@ -69,7 +68,8 @@ export function isValidRelayUrl(url: string): boolean {
   if (!url) return false;
   const lower = url.toLowerCase();
   if (!lower.startsWith("http://") && !lower.startsWith("https://")) return false;
-  try { new URL(url); return true; } catch { return false; }
+  try { new URL(url); } catch { return false; }
+  return isAllowedRelayHost(url);
 }
 
 /**

@@ -2,6 +2,7 @@ import { EventEmitter } from "node:events";
 import WebSocket from "ws";
 import { ed25519Sign } from "../pairing/crypto.js";
 import type { Ed25519Keypair } from "../pairing/crypto.js";
+import { assertPrivateRelayUrl, isAllowedRelayAddress, RelayUrlNotAllowedError } from "./relay_guard.js";
 
 const AUTH_TIMEOUT_MS = 5_000;
 
@@ -110,11 +111,22 @@ export class RelayClient extends EventEmitter {
    * `_cmdStart`) maps that to a clearer UI message.
    */
   async connect(options: ConnectOptions = {}): Promise<void> {
+    await assertPrivateRelayUrl(this.url);
     return new Promise<void>((resolve, reject) => {
-      const ws = new WebSocket(this.url);
+      const ws = new WebSocket(this.url, { followRedirects: false });
       this.ws = ws;
 
       ws.on("error", (err) => reject(err));
+
+      // Re-check the address actually connected to (closes the DNS race
+      // between the pre-check above and the socket connect).
+      ws.on("upgrade", (res) => {
+        const remote = res.socket.remoteAddress ?? "";
+        if (!isAllowedRelayAddress(remote)) {
+          ws.terminate();
+          reject(new RelayUrlNotAllowedError(this.url, `connected to non-private address ${remote}`));
+        }
+      });
 
       ws.on("open", async () => {
         try {

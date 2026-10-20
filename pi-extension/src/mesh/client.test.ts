@@ -37,14 +37,14 @@ describe("MeshClient", () => {
     );
     vi.stubGlobal("fetch", fetchMock);
 
-    const result = await new MeshClient("https://relay.test/").get("abc", 7);
+    const result = await new MeshClient("https://100.64.0.1/").get("abc", 7);
 
     expect(result).toEqual({
       blob: VALID_BLOB,
       sig: VALID_SIGNATURE,
     });
     expect(fetchMock).toHaveBeenCalledWith(
-      "https://relay.test/mesh/abc?since=7",
+      "https://100.64.0.1/mesh/abc?since=7",
       expect.objectContaining({
         method: "GET",
         signal: expect.any(AbortSignal),
@@ -57,7 +57,7 @@ describe("MeshClient", () => {
     const res = response(status);
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res));
 
-    await expect(new MeshClient("https://relay.test").get("abc")).resolves.toBeNull();
+    await expect(new MeshClient("https://100.64.0.1").get("abc")).resolves.toBeNull();
     expect(res.json).not.toHaveBeenCalled();
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -65,7 +65,7 @@ describe("MeshClient", () => {
   test("classifies a network failure as unavailable", async () => {
     vi.stubGlobal("fetch", vi.fn().mockRejectedValue(new Error("network failed")));
 
-    await expect(new MeshClient("https://relay.test").get("abc"))
+    await expect(new MeshClient("https://100.64.0.1").get("abc"))
       .rejects.toBeInstanceOf(MeshFetchUnavailableError);
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -77,7 +77,7 @@ describe("MeshClient", () => {
   ])("classifies representative unavailable and invalid responses", async (status, expectedError, payload) => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(response(status, payload)));
 
-    await expect(new MeshClient("https://relay.test").get("abc"))
+    await expect(new MeshClient("https://100.64.0.1").get("abc"))
       .rejects.toBeInstanceOf(expectedError);
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -90,7 +90,7 @@ describe("MeshClient", () => {
     } as unknown as Response;
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res));
 
-    const error = await new MeshClient("https://relay.test")
+    const error = await new MeshClient("https://100.64.0.1")
       .get("abc")
       .catch((caught: unknown) => caught);
 
@@ -106,7 +106,7 @@ describe("MeshClient", () => {
     } as unknown as Response;
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(res));
 
-    const error = await new MeshClient("https://relay.test")
+    const error = await new MeshClient("https://100.64.0.1")
       .get("abc")
       .catch((caught: unknown) => caught);
 
@@ -126,7 +126,7 @@ describe("MeshClient", () => {
         }),
     );
     vi.stubGlobal("fetch", fetchMock);
-    const outcome = new MeshClient("https://relay.test", {
+    const outcome = new MeshClient("https://100.64.0.1", {
       requestTimeoutMs: 25,
     })
       .get("abc")
@@ -146,7 +146,7 @@ describe("MeshClient", () => {
         json: vi.fn(() => new Promise<never>(() => {})),
       } as unknown as Response),
     );
-    const outcome = new MeshClient("https://relay.test", {
+    const outcome = new MeshClient("https://100.64.0.1", {
       requestTimeoutMs: 25,
     })
       .get("abc")
