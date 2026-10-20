@@ -74,6 +74,7 @@ import {
   createExtensionUiBridge,
   type ExtensionUiBridge,
 } from "./extension_ui_bridge.js";
+import { createAskTextFallback, type AskTextFallback } from "./ask_text_fallback.js";
 import { roomIdFor } from "./rooms.js";
 import { registerAgentTools } from "./session/tools.js";
 import { formatPeerInventory } from "./session/peer_inventory.js";
@@ -1105,6 +1106,8 @@ let _pi: ExtensionAPI | null = null;
 // Plan/57 — Bridge to pi-ask's clarification-flow events. null until the
 // extension factory wires it (and null if the SDK exposes no events bus).
 let _extensionUiBridge: ExtensionUiBridge | null = null;
+// Fork: plain-text fallback for app builds that cannot render ask_user forms.
+let _askTextFallback: AskTextFallback | null = null;
 
 let _stopAutoListener: (() => void) | null = null;
 
@@ -2082,6 +2085,8 @@ const extension: ExtensionFactory = (pi: ExtensionAPI): void => {
   // factory re-run (new pi session) can't leak subscriptions or double-send.
   _extensionUiBridge?.dispose();
   _extensionUiBridge = createExtensionUiBridge(pi, _broadcastToActive);
+  _askTextFallback?.dispose();
+  _askTextFallback = createAskTextFallback(pi, _broadcastToActive);
 
   // Plano 19: ensure ~/.pi/remote/{sessions,skills}/ exist and deploy the
   // agent-network skill on first load. resources_discover lets Pi find it.
@@ -2346,6 +2351,9 @@ const extension: ExtensionFactory = (pi: ExtensionAPI): void => {
     if (!_extensionUiBridge) {
       _extensionUiBridge = createExtensionUiBridge(pi, _broadcastToActive);
     }
+    if (!_askTextFallback) {
+      _askTextFallback = createAskTextFallback(pi, _broadcastToActive);
+    }
     // Rearm a reused-but-disposed instance. The session_shutdown teardown (below)
     // sets _disposed=true assuming the host re-evaluates THIS module fresh for the
     // replacement session, yielding a new instance with _disposed=false. Some hosts
@@ -2450,6 +2458,8 @@ const extension: ExtensionFactory = (pi: ExtensionAPI): void => {
     // module instances create their bridge in the factory.
     _extensionUiBridge?.dispose();
     _extensionUiBridge = null;
+    _askTextFallback?.dispose();
+    _askTextFallback = null;
     // Drop captured ctxs immediately. On module-reuse hosts the same instance
     // survives session replacement; leaving `_lastCtx` pointing at the now-
     // stale command ctx is what crashed pi in _refreshFooter on peer reconnect
@@ -4446,6 +4456,15 @@ export function _routeClientMessageFrom(
       // Plan/30: echo any inline images too so every owner renders the same
       // image bubble. No-image path is byte-identical to before (no `images`
       // key on the wire).
+      // Fork: while an ask_user question is open, a text reply answers it
+      // instead of reaching the (blocked) agent as a steering message.
+      if (
+        !(msg.images && msg.images.length > 0) &&
+        _askTextFallback?.answerFromText(msg.text)
+      ) {
+        _echoUserMessage(msg);
+        break;
+      }
       const requestedSteer = msg.streaming_behavior === "steer";
       const inferredBusySteer = !requestedSteer && _myRoomMeta?.working === true;
       const shouldSteer = requestedSteer || inferredBusySteer;

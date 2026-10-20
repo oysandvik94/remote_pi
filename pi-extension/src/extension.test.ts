@@ -3840,9 +3840,9 @@ describe("session_shutdown teardown", () => {
     const completed = "@eko24ive/pi-ask:completed";
     const submitResult = "@eko24ive/pi-ask:submit-result";
 
-    expect(harness.busListenerCount(started)).toBe(1);
-    expect(harness.busListenerCount(completed)).toBe(1);
-    expect(harness.busListenerCount(submitResult)).toBe(1);
+    expect(harness.busListenerCount(started)).toBe(2);
+    expect(harness.busListenerCount(completed)).toBe(2);
+    expect(harness.busListenerCount(submitResult)).toBe(2);
 
     await harness.handler("session_shutdown")({
       type: "session_shutdown",
@@ -3858,9 +3858,9 @@ describe("session_shutdown teardown", () => {
       makeMockCtx(),
     );
 
-    expect(harness.busListenerCount(started)).toBe(1);
-    expect(harness.busListenerCount(completed)).toBe(1);
-    expect(harness.busListenerCount(submitResult)).toBe(1);
+    expect(harness.busListenerCount(started)).toBe(2);
+    expect(harness.busListenerCount(completed)).toBe(2);
+    expect(harness.busListenerCount(submitResult)).toBe(2);
   });
 
   test("firing session_shutdown while started tears down mesh + relay → idle", async () => {
